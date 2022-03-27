@@ -10,35 +10,36 @@
             size: self.size
     Player:
         id: player1
-    Platform:
-        id: plat1
-        size: 1500, 20
-        pos: 0 , 0
-    Platform:
-        id: plat2
-        pos: 100 , 120
-    Platform:
-        id: plat3
-        pos: 200 , 280
-    Platform:
-        id: plat4
-        pos: 600 , 300
+#    Platform:
+#        id: plat1
+#        size: 1500, 20
+#        pos: 0 , 0
+#    Platform:
+#        id: plat2
+#        pos: 100 , 120
+#    Platform:
+#        id: plat3
+#        pos: 200 , 280
+#    Platform:
+#        id: plat4
+#        pos: 600 , 300
 
 <Player>:
     size: 60, 60
 #    pos: random.random() * 800 - self.size[0], random.random() * 600 - self.size[1]
-    pos: 250, 300
+    pos: 0, 100
     canvas:
         Color:
             rgba: 0, 0, 1, 1
         Rectangle:
             pos: self.pos
             size: self.size
-<Platform>:
-    size: 100, 10
-    canvas:
-        Color:
-            rgba: 1, 1, 1, 1
-        Rectangle:
-            pos: self.pos
-            size: self.size
+#<Platform>:
+#    id =
+#    size: 100, 10
+#    canvas:
+#        Color:
+#            rgba: 1, 1, 1, 1
+#        Rectangle:
+#            pos: self.pos
+#            size: self.size

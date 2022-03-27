@@ -1,8 +1,10 @@
 # make two circles that collide into each other and bounce around in the screen
+from random import random
 
 from kivy.app import App
 from kivy.clock import Clock
 from kivy.core.window import Window
+from kivy.graphics import Color, Rectangle
 from kivy.uix.widget import Widget
 from kivy.properties import ListProperty
 
@@ -21,20 +23,24 @@ class GameView(Widget):
         self.player = self.ids['player1']
 
         # platform setup
-        self.platforms = [self.ids['plat1'],
-                          self.ids['plat2'],
-                          self.ids['plat3'],
-                          self.ids['plat4']]
+        p1 = Platform(pos=(0, 0), size=(1500, 10))
+        self.add_widget(p1)
+        self.platforms = [p1]
+        p_height = 50
+        for i in range(10):
+            p = Platform(pos=(random()*800, p_height), size=(150, 10))
+            p_height += 50
+            self.add_widget(p)
+            self.platforms.append(p)
 
         # updates
         Clock.schedule_interval(self.update, 1/60.)
 
     def update(self, *args):
-
         for platform in self.platforms:
             if self.player.collide_widget(platform):
-                print('player pos: ', self.player.pos)
-                print('platform pos: ', platform.pos)
+                # print('player pos: ', self.player.pos)
+                # print('platform pos: ', platform.pos)
                 if self.player.velocity[1] <= 0 and self.player.pos[1] > platform.pos[1]:
                     self.player.velocity[1] *= -1
                     self.player.velocity[1] = + self.bounce_value
@@ -59,7 +65,7 @@ class GameView(Widget):
 
 
 class Player(Widget):
-    velocity = ListProperty([0, -4])
+    velocity = ListProperty([0, -7.5])
 
     def __init__(self, **kwargs):
         super(Player, self).__init__(**kwargs)
@@ -79,7 +85,14 @@ class Player(Widget):
 
 
 class Platform(Widget):
-    pass
+    def __init__(self, **kwargs):
+        super(Platform, self).__init__(**kwargs)
+        self.pos = kwargs['pos']
+        self.size = kwargs['size']
+        with self.canvas:
+            Color(1., 1., 1.)
+            Rectangle(pos=self.pos, size=self.size)
+
 
 
 
