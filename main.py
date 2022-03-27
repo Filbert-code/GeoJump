@@ -10,6 +10,10 @@ from Platform import Platform
 from Player import Player
 from PlayerInput import PlayerInput
 
+# Make Sure This Is Always the last import
+from kivy import Config
+Config.set('graphics', 'multisamples', '0')
+
 
 class GameView(Widget):
     def __init__(self, **kwargs):
@@ -18,8 +22,8 @@ class GameView(Widget):
         # player setup
         self.player = Player(pos=(0, 100), size=(60, 60))
         self.add_widget(self.player)
-        self.bounce_value = 13
-        self.player.gravity = 0.5
+        self.bounce_value = 15
+        self.player.gravity = 0.4
 
         # user keyboard input setup
         self._keyboard = PlayerInput(self.player)
@@ -36,23 +40,9 @@ class GameView(Widget):
 
     def update(self, *args):
         for platform in self.platforms:
-            # check player collision with platforms
-            if self.player.collide_widget(platform):
-                # print('player pos: ', self.player.pos)
-                # print('platform pos: ', platform.pos)
-                if self.player.velocity[1] <= 0 and self.player.pos[1] > platform.pos[1] - platform.height/2:
-                    self.player.velocity[1] *= -1
-                    self.player.velocity[1] = + self.bounce_value
-
-            # update height of platforms
-            if self.player.pos[1] > 250:
-                platform.pos[1] -= 5
-            # delete platform objects that fall below the screen
-            if platform.pos[1] < -self.player.height:
-                self.remove_widget(platform)
-                self.platforms.pop(0)
-                self.create_platforms(1, 50)
-                print('Number of platforms: ', len(self.platforms))
+            self.platform_player_collision(platform)
+            self.move_platform(platform)
+            self.discard_unseen_platforms(platform)
 
     def on_touch_down(self, touch):
         # clicking right side of the screen
@@ -68,6 +58,24 @@ class GameView(Widget):
             self.platform_height += 50
             self.add_widget(p)
             self.platforms.append(p)
+
+    def platform_player_collision(self, platform):
+        # check player collision with platforms
+        if self.player.collide_widget(platform):
+            if self.player.velocity[1] < -2.5 and self.player.pos[1] > platform.pos[1] - platform.height / 2:
+                self.player.velocity[1] = self.bounce_value
+
+    def move_platform(self, platform):
+        # update height of platforms
+        if self.player.pos[1] > 280:
+            platform.pos[1] -= 5
+
+    def discard_unseen_platforms(self, platform):
+        # delete platform objects that fall below the screen
+        if platform.pos[1] < -self.player.height:
+            self.remove_widget(platform)
+            self.platforms.pop(0)
+            self.create_platforms(1, 50)
 
 
 class GeoJumpApp(App):

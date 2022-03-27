@@ -18,32 +18,18 @@ class Player(Widget):
         Clock.schedule_interval(self.update, 1/60.)
 
     def update(self, *args):
-        # print('player velocity: {}, {}'.format(self.velocity[0], self.velocity[1]))
+        print('player velocity: ', self.velocity)
+        # update player velocity
         self.x += self.velocity[0]
         self.y += self.velocity[1]
+
         # player has a constant decreasing vertical velocity (negative acceleration)
         self.velocity[1] -= self.gravity
-        self.movePlayer()
-        # player has a constant horizontal deceleration, will come to a stop if
-        # no inputs are made
-        if self.velocity[0] > 0:
-            self.velocity[0] -= 0.5
-        if self.velocity[0] < 0:
-            self.velocity[0] += 0.5
-        # limit the player's vertical speed to avoid clipping through platforms
-        if self.velocity[1] < -12:
-            self.velocity[1] = -12
-        # limit the player's horizontal speed
-        h_speed_limit = 12
-        if self.velocity[0] > h_speed_limit:
-            self.velocity[0] = h_speed_limit
-        if self.velocity[0] < -h_speed_limit:
-            self.velocity[0] = -h_speed_limit
-        # teleport to the other side if the player exits the left or right screen
-        if self.x < -self.width:
-            self.x = Window.width
-        elif self.x > Window.width:
-            self.x = -self.width
+        self.horizontal_acceleration(3)
+        self.horizontal_deceleration(1)
+        self.vertical_speed_limit(20, 12)
+        self.horizontal_speed_limit(8)
+        self.horizontal_out_of_bounds()
         self.draw()
 
     def draw(self):
@@ -52,8 +38,38 @@ class Player(Widget):
             Color(0, 0, 1.)
             Rectangle(pos=self.pos, size=self.size)
 
-    def movePlayer(self):
+    def horizontal_acceleration(self, acc):
         if self.isMovingLeft:
-            self.velocity[0] -= 3
+            self.velocity[0] -= acc
         if self.isMovingRight:
-            self.velocity[0] += 3
+            self.velocity[0] += acc
+
+    def horizontal_deceleration(self, acc):
+        # player has a constant horizontal deceleration, will come to a stop if
+        # no inputs are made
+        if self.velocity[0] > 0:
+            self.velocity[0] -= acc
+        if self.velocity[0] < 0:
+            self.velocity[0] += acc
+
+    def vertical_speed_limit(self, speed_limit_down, speed_limit_up):
+        # limit the player's vertical speed to avoid clipping through platforms
+        if self.velocity[1] < -speed_limit_down:
+            self.velocity[1] = -speed_limit_down
+        elif self.velocity[1] > speed_limit_up:
+            self.velocity[1] = speed_limit_up
+
+    def horizontal_speed_limit(self, speed_limit):
+        # limit the player's horizontal speed
+        if self.velocity[0] > speed_limit:
+            self.velocity[0] = speed_limit
+        if self.velocity[0] < -speed_limit:
+            self.velocity[0] = -speed_limit
+
+    def horizontal_out_of_bounds(self):
+        # teleport to the other side if the player exits the left or right screen
+        if self.x < -self.width:
+            self.x = Window.width
+        elif self.x > Window.width:
+            self.x = -self.width
+
