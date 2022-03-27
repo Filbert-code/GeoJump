@@ -83,10 +83,10 @@ class Platform(Widget):
 
 
 
-class CageFightApp(App):
+class GeoJumpApp(App):
     def build(self):
         return GameView()
 
 
 if __name__ == '__main__':
-    CageFightApp().run()
+    GeoJumpApp().run()
