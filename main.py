@@ -29,6 +29,7 @@ class GameView(Widget):
         p_height = 50
         for i in range(10):
             p = Platform(pos=(random()*800, p_height), size=(150, 10))
+            Clock.schedule_interval(p.update, 1 / 60.)
             p_height += 50
             self.add_widget(p)
             self.platforms.append(p)
@@ -38,12 +39,21 @@ class GameView(Widget):
 
     def update(self, *args):
         for platform in self.platforms:
+            # check player collision with platforms
             if self.player.collide_widget(platform):
                 # print('player pos: ', self.player.pos)
                 # print('platform pos: ', platform.pos)
                 if self.player.velocity[1] <= 0 and self.player.pos[1] > platform.pos[1]:
                     self.player.velocity[1] *= -1
                     self.player.velocity[1] = + self.bounce_value
+
+            # update height of platforms
+            if self.player.pos[1] > 300:
+                print('changed position')
+                platform.pos[1] -= 1
+
+
+
 
 
     def _on_keyboard_down(self, keyboard, keycode, text, modifiers):
@@ -93,7 +103,14 @@ class Platform(Widget):
             Color(1., 1., 1.)
             Rectangle(pos=self.pos, size=self.size)
 
+    def update(self, *args):
+        self.draw()
 
+    def draw(self, *args):
+        self.canvas.clear()
+        with self.canvas:
+            Color(1., 1., 1.)
+            Rectangle(pos=self.pos, size=self.size)
 
 
 class GeoJumpApp(App):
