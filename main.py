@@ -3,7 +3,7 @@ from random import random
 from kivy.app import App
 from kivy.clock import Clock
 from kivy.core.window import Window
-from kivy.uix.screenmanager import ScreenManager, Screen, FadeTransition
+from kivy.uix.screenmanager import ScreenManager, Screen, FadeTransition, NoTransition, CardTransition
 from kivy.uix.widget import Widget
 from kivy.properties import StringProperty, NumericProperty, ReferenceListProperty
 from MovingPlatform import MovingPlatform
@@ -117,7 +117,35 @@ class GameView(Widget):
             p.paused = True
 
     def game_over(self):
+        self.parent.parent.manager.transition = NoTransition()
         self.parent.parent.manager.current = 'game_over'
+        self.reset_game_widgets()
+
+    def reset_game_widgets(self):
+        self.score = 0
+        # delete all current children widgets
+        for child in self.children:
+            self.remove_widget(child)
+        self.canvas.clear()
+        # unschedule all updates
+        for platform in self.platform_group:
+            Clock.unschedule(platform.update)
+        self.platform_group = []
+        Clock.unschedule(self.player.update)
+
+        # player setup
+        self.player = Player(pos=(0, 200), size=(60, 60))
+        self.add_widget(self.player)
+        self.bounce_value = 0
+        self.player.velocity[1] = 0
+        self.player.gravity = 0
+
+        # platform setup
+        p1 = Platform(pos=(0, 0), size=(1500, 10))
+        self.add_widget(p1)
+        self.platform_group = [p1]
+        self.create_platforms(20, 50)
+        self.background_movement_speed = 5
 
     def _keyboard_closed(self):
         self.keyboard.unbind(on_key_down=self._on_keyboard_down)
@@ -155,7 +183,7 @@ class GameOverScreen(Screen):
 
 class GeoJumpApp(App):
     def build(self):
-        screen_manager = ScreenManager(transition=FadeTransition())
+        screen_manager = ScreenManager(transition=CardTransition())
         screen_manager.add_widget(MenuScreen(name='menu'))
         screen_manager.add_widget(GameScreen(name='game'))
         screen_manager.add_widget(GameOverScreen(name='game_over'))

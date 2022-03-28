@@ -1,4 +1,5 @@
 #:import random random
+#: import CardTransition kivy.uix.screenmanager.CardTransition
 
 <GameScreen>:
     canvas:
@@ -36,12 +37,14 @@
         center: root.center
         Button:
             text: 'START JUMPING'
+            font_size: 20
             text_size: self.size
             halign: 'center'
             valign: 'center'
             on_release: root.manager.current = 'game'
         Button:
             text: 'Quit'
+            font_size: 20
             on_release: exit()
 
 <GameOverScreen>:
@@ -51,22 +54,31 @@
         Rectangle:
             pos: self.pos
             size: self.size
+
     BoxLayout:
         size_hint: None, None
-        size: 400, 150
+        size: 600, 150
         orientation: 'vertical'
         center: root.center
         Label:
-            size: 133, 50
+            font_size: 30
+            size: 266, 100
             text: 'YOUR JUMPING DAYS ARE NUMBERED'
-            text_size: self.size
-        Button:
-            text: 'RESTART'
             text_size: self.size
             halign: 'center'
             valign: 'center'
-            on_release: root.manager.current = 'game'
         Button:
+            text: 'RESTART'
+            font_size: 20
+            text_size: self.size
+            halign: 'center'
+            valign: 'center'
+            on_release:
+                root.manager.transition = CardTransition()
+                root.manager.current = 'game'
+        Button:
+            center: self.parent.center
+            font_size: 20
             text: 'Quit'
             on_release: exit()
 
