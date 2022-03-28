@@ -2,9 +2,8 @@ from random import random
 
 from Platform import Platform
 
-'''
-Subclass of Platform. These platforms can move around. Impressive isn't it? 
-'''
+
+# Subclass of Platform. These platforms can move around. Impressive isn't it?
 class MovingPlatform(Platform):
     def __init__(self, **kwargs):
         super(MovingPlatform, self).__init__(**kwargs)

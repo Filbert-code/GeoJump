@@ -3,18 +3,12 @@ from random import random
 from kivy.app import App
 from kivy.clock import Clock
 from kivy.core.window import Window
-from kivy.graphics import Color, Rectangle
-from kivy.uix.boxlayout import BoxLayout
-from kivy.uix.button import Button
-from kivy.uix.floatlayout import FloatLayout
 from kivy.uix.screenmanager import ScreenManager, Screen, FadeTransition
 from kivy.uix.widget import Widget
 from kivy.properties import StringProperty, NumericProperty, ReferenceListProperty
-
 from MovingPlatform import MovingPlatform
 from Platform import Platform
 from Player import Player
-from PlayerInput import PlayerInput
 
 # Make Sure This Is Always the last import
 from kivy import Config
@@ -26,7 +20,7 @@ class GameView(Widget):
 
     def __init__(self, **kwargs):
         super(GameView, self).__init__(**kwargs)
-
+        # used for pausing the game
         self.game_has_started = False
 
         # player setup
@@ -37,8 +31,7 @@ class GameView(Widget):
         self.player.gravity = 0
 
         # user keyboard input setup
-        self.keyboard = Window.request_keyboard(
-            self._keyboard_closed, self, 'text')
+        self.keyboard = Window.request_keyboard(self._keyboard_closed, self, 'text')
         self.keyboard.bind(on_key_down=self._on_keyboard_down)
         self.keyboard.bind(on_key_up=self._on_keyboard_up)
 
@@ -46,8 +39,7 @@ class GameView(Widget):
         p1 = Platform(pos=(0, 0), size=(1500, 10))
         self.add_widget(p1)
         self.platform_group = [p1]
-        self.last_platform_placed_y_pos = 20
-        self.create_platforms(10, 50)
+        self.create_platforms(20, 50)
         self.background_movement_speed = 5
 
         # updates
@@ -75,11 +67,12 @@ class GameView(Widget):
         moving_plat_chance = 0.45
         for i in range(numOfPlatforms):
             if random() <= moving_plat_chance:
-                p = MovingPlatform(pos=(random()*800, self.last_platform_placed_y_pos + separation), size=(150, 10))
+                # using the position of the last platform added to create the new platform
+                p = MovingPlatform(pos=(random()*800, self.platform_group[-1].pos[1] + separation), size=(150, 10))
             else:
-                p = Platform(pos=(random()*800, self.last_platform_placed_y_pos + separation), size=(150, 10))
+                # static platforms
+                p = Platform(pos=(random()*800, self.platform_group[-1].pos[1] + separation), size=(150, 10))
             Clock.schedule_interval(p.update, 1 / 60.)
-            self.last_platform_placed_y_pos += 50
             self.add_widget(p)
             self.platform_group.append(p)
 
@@ -99,7 +92,7 @@ class GameView(Widget):
 
     def discard_unseen_platforms(self, platform):
         # delete platform objects that fall below the screen
-        platform_offscreen_distance = 0
+        platform_offscreen_distance = 50
         if platform.pos[1] < -self.player.height:
             self.remove_widget(platform)
             self.platform_group.pop(0)
