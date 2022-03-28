@@ -21,7 +21,6 @@ class Player(Widget):
     def update(self, *args):
         if self.paused:
             return
-        print('player velocity: ', self.velocity)
         # update player velocity
         self.x += self.velocity[0]
         self.y += self.velocity[1]

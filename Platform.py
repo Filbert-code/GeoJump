@@ -18,6 +18,7 @@ class Platform(Widget):
     def update(self, *args):
         if self.paused:
             return
+
         self.x += self.velocity[0]
         self.y += self.velocity[1]
 

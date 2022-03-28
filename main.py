@@ -10,6 +10,8 @@ from kivy.uix.floatlayout import FloatLayout
 from kivy.uix.screenmanager import ScreenManager, Screen, FadeTransition
 from kivy.uix.widget import Widget
 from kivy.properties import StringProperty, NumericProperty, ReferenceListProperty
+
+from MovingPlatform import MovingPlatform
 from Platform import Platform
 from Player import Player
 from PlayerInput import PlayerInput
@@ -24,7 +26,6 @@ class GameView(Widget):
 
     def __init__(self, **kwargs):
         super(GameView, self).__init__(**kwargs)
-
 
         self.game_has_started = False
 
@@ -43,10 +44,9 @@ class GameView(Widget):
 
         # platform setup
         p1 = Platform(pos=(0, 0), size=(1500, 10))
-        p1.isBooster = True
         self.add_widget(p1)
         self.platform_group = [p1]
-        self.platform_height = 50
+        self.last_platform_placed_y_pos = 20
         self.create_platforms(10, 50)
         self.background_movement_speed = 5
 
@@ -71,10 +71,15 @@ class GameView(Widget):
             self.player.velocity[0] = -7.5
 
     def create_platforms(self, numOfPlatforms, separation):
+        # percentage chance of spawning a moving platform
+        moving_plat_chance = 0.45
         for i in range(numOfPlatforms):
-            p = Platform(pos=(random()*800, self.platform_height + separation), size=(150, 10))
+            if random() <= moving_plat_chance:
+                p = MovingPlatform(pos=(random()*800, self.last_platform_placed_y_pos + separation), size=(150, 10))
+            else:
+                p = Platform(pos=(random()*800, self.last_platform_placed_y_pos + separation), size=(150, 10))
             Clock.schedule_interval(p.update, 1 / 60.)
-            self.platform_height += 50
+            self.last_platform_placed_y_pos += 50
             self.add_widget(p)
             self.platform_group.append(p)
 
@@ -88,14 +93,13 @@ class GameView(Widget):
         # update height of platforms
         if self.player.pos[1] > 280:
             platform.velocity[1] = -self.background_movement_speed
-            self.score += 20
+            self.score += 1
         else:
             platform.velocity[1] = 0
 
     def discard_unseen_platforms(self, platform):
         # delete platform objects that fall below the screen
-        platform_offscreen_distance = 50
-        print('platform pos: ', platform.pos[1])
+        platform_offscreen_distance = 0
         if platform.pos[1] < -self.player.height:
             self.remove_widget(platform)
             self.platform_group.pop(0)
@@ -117,7 +121,6 @@ class GameView(Widget):
             p.paused = True
 
     def _keyboard_closed(self):
-        print('My keyboard have been closed!')
         self.keyboard.unbind(on_key_down=self._on_keyboard_down)
         self.keyboard = None
 
