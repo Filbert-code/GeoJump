@@ -54,6 +54,9 @@ class GameView(Widget):
             self.platform_player_collision(platform)
             self.move_platform(platform)
             self.discard_unseen_platforms(platform)
+        # check if the player died
+        if self.player.pos[1] < -self.player.height:
+            self.game_over()
 
     def on_touch_down(self, touch):
         # clicking right side of the screen
@@ -64,7 +67,7 @@ class GameView(Widget):
 
     def create_platforms(self, numOfPlatforms, separation):
         # percentage chance of spawning a moving platform
-        moving_plat_chance = 0.45
+        moving_plat_chance = 0.25
         for i in range(numOfPlatforms):
             if random() <= moving_plat_chance:
                 # using the position of the last platform added to create the new platform
@@ -113,6 +116,9 @@ class GameView(Widget):
         for p in self.platform_group:
             p.paused = True
 
+    def game_over(self):
+        self.parent.parent.manager.current = 'game_over'
+
     def _keyboard_closed(self):
         self.keyboard.unbind(on_key_down=self._on_keyboard_down)
         self.keyboard = None
@@ -143,11 +149,16 @@ class MenuScreen(Screen):
     pass
 
 
+class GameOverScreen(Screen):
+    pass
+
+
 class GeoJumpApp(App):
     def build(self):
         screen_manager = ScreenManager(transition=FadeTransition())
         screen_manager.add_widget(MenuScreen(name='menu'))
         screen_manager.add_widget(GameScreen(name='game'))
+        screen_manager.add_widget(GameOverScreen(name='game_over'))
         return screen_manager
 
 

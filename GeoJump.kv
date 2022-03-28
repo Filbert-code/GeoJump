@@ -44,5 +44,29 @@
             text: 'Quit'
             on_release: exit()
 
-
+<GameOverScreen>:
+    canvas:
+        Color:
+            rgba: 0, 0.6, 0, 1
+        Rectangle:
+            pos: self.pos
+            size: self.size
+    BoxLayout:
+        size_hint: None, None
+        size: 400, 150
+        orientation: 'vertical'
+        center: root.center
+        Label:
+            size: 133, 50
+            text: 'YOUR JUMPING DAYS ARE NUMBERED'
+            text_size: self.size
+        Button:
+            text: 'RESTART'
+            text_size: self.size
+            halign: 'center'
+            valign: 'center'
+            on_release: root.manager.current = 'game'
+        Button:
+            text: 'Quit'
+            on_release: exit()
 
