@@ -1,10 +1,48 @@
 #:import random random
 
-<GameView>:
-    id: my_widget
+<GameScreen>:
     canvas:
         Color:
-            rgba: 0.5, 0.1, 0, 1
+            rgba: 0.6, 0, 0, 1
         Rectangle:
             pos: self.pos
             size: self.size
+    FloatLayout:
+        GameView
+            id: game
+        Button:
+            size_hint: None, None
+            pos: self.parent.width - self.width, self.parent.height - self.height
+            text: 'Pause'
+            on_press: game.pause_game() if game.game_has_started else game.start_game()
+            on_release: self.text = 'Pause' if game.game_has_started else 'Resume'
+        Label:
+            size_hint: None, None
+            font_size: 50
+            pos: self.parent.width/2 - self.width/3, self.parent.height - self.height
+            text: str(game.score)
+
+<MenuScreen>:
+    canvas:
+        Color:
+            rgba: 0, 0.6, 0, 1
+        Rectangle:
+            pos: self.pos
+            size: self.size
+    BoxLayout:
+        size_hint: None, None
+        size: 400, 150
+        orientation: 'vertical'
+        center: root.center
+        Button:
+            text: 'START JUMPING'
+            text_size: self.size
+            halign: 'center'
+            valign: 'center'
+            on_release: root.manager.current = 'game'
+        Button:
+            text: 'Quit'
+            on_release: exit()
+
+
+

@@ -6,18 +6,21 @@ from kivy.uix.widget import Widget
 
 
 class Player(Widget):
-    velocity = ListProperty([0, -7.5])
+    velocity = ListProperty([0, 0])
 
     def __init__(self, **kwargs):
         super(Player, self).__init__(**kwargs)
         self.pos = kwargs['pos']
         self.size = kwargs['size']
-        self.gravity = 0.5
+        self.gravity = 0
         self.isMovingLeft = False
         self.isMovingRight = False
         Clock.schedule_interval(self.update, 1/60.)
+        self.paused = False
 
     def update(self, *args):
+        if self.paused:
+            return
         print('player velocity: ', self.velocity)
         # update player velocity
         self.x += self.velocity[0]
@@ -25,10 +28,10 @@ class Player(Widget):
 
         # player has a constant decreasing vertical velocity (negative acceleration)
         self.velocity[1] -= self.gravity
-        self.horizontal_acceleration(3)
+        self.horizontal_acceleration(1.5)
         self.horizontal_deceleration(1)
         self.vertical_speed_limit(20, 12)
-        self.horizontal_speed_limit(8)
+        self.horizontal_speed_limit(10)
         self.horizontal_out_of_bounds()
         self.draw()
 
@@ -72,4 +75,8 @@ class Player(Widget):
             self.x = Window.width
         elif self.x > Window.width:
             self.x = -self.width
+
+    def give_player_movement(self):
+        self.velocity[1] = -7.5
+        self.gravity = 0.5
 
