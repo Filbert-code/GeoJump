@@ -32,20 +32,34 @@
             size: self.size
     BoxLayout:
         size_hint: None, None
-        size: 400, 150
+        size: 600, 300
         orientation: 'vertical'
         center: root.center
-        Button:
-            text: 'START JUMPING'
-            font_size: 20
+        Label:
+            text: 'GeoJumper'
+            font_size: 100
+            font_name:'Roboto-BoldItalic'
             text_size: self.size
+            color: 'cyan'
             halign: 'center'
             valign: 'center'
-            on_release: root.manager.current = 'game'
-        Button:
-            text: 'Quit'
-            font_size: 20
-            on_release: exit()
+
+        AnchorLayout:
+            Button:
+                text: 'START JUMPING'
+                size_hint: None, None
+                font_size: 30
+                size: self.texture_size
+                padding: 20, 20
+                on_release: root.manager.current = 'game'
+        AnchorLayout:
+            Button:
+                text: 'Quit'
+                size_hint: None, None
+                font_size: 30
+                size: self.texture_size
+                padding: 20, 20
+                on_release: exit()
 
 <GameOverScreen>:
     canvas:
@@ -57,28 +71,35 @@
 
     BoxLayout:
         size_hint: None, None
-        size: 600, 150
+        size: 600, 300
         orientation: 'vertical'
         center: root.center
         Label:
-            font_size: 30
+            font_size: 40
             size: 266, 100
+            color: 'red'
             text: 'YOUR JUMPING DAYS ARE NUMBERED'
+            font_name:'Roboto-BoldItalic'
             text_size: self.size
             halign: 'center'
             valign: 'center'
-        Button:
-            text: 'RESTART'
-            font_size: 20
-            text_size: self.size
-            halign: 'center'
-            valign: 'center'
-            on_release:
-                root.manager.transition = CardTransition()
-                root.manager.current = 'game'
-        Button:
-            center: self.parent.center
-            font_size: 20
-            text: 'Quit'
-            on_release: exit()
+        AnchorLayout:
+            Button:
+                size_hint: None, None
+                text: 'RESTART'
+                font_size: 30
+                padding: 20, 20
+                size: self.texture_size
+                on_release:
+                    root.manager.transition = CardTransition()
+                    root.manager.current = 'game'
+        AnchorLayout:
+            Button:
+                size_hint: None, None
+                center: self.parent.center
+                font_size: 30
+                padding: 20, 20
+                size: self.texture_size
+                text: 'Quit'
+                on_release: exit()
 
