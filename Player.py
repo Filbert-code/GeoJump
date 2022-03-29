@@ -17,6 +17,10 @@ class Player(Widget):
         self.isMovingRight = False
         Clock.schedule_interval(self.update, 1/60.)
         self.paused = False
+        self.bounce_value = 20
+        self.boost_active = False
+        self.boost_slowdown = False
+        self.platform_boost_velocity = 0
 
     def update(self, *args):
         if self.paused:
@@ -24,6 +28,9 @@ class Player(Widget):
         # update player velocity
         self.x += self.velocity[0]
         self.y += self.velocity[1]
+
+        if self.boost_active:
+            self.update_boost_velocity()
 
         # player has a constant decreasing vertical velocity (negative acceleration)
         self.velocity[1] -= self.gravity
@@ -78,4 +85,10 @@ class Player(Widget):
     def give_player_movement(self):
         self.velocity[1] = -7.5
         self.gravity = 0.5
+
+    def update_boost_velocity(self):
+        if self.boost_slowdown:
+            self.platform_boost_velocity += 0.6
+        else:
+            self.platform_boost_velocity -= 0.6
 
