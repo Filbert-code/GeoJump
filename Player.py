@@ -29,7 +29,7 @@ class Player(Widget):
         self.velocity[1] -= self.gravity
         self.horizontal_acceleration(1.5)
         self.horizontal_deceleration(1)
-        self.vertical_speed_limit(20, 12)
+        self.vertical_speed_limit(40, 12)
         self.horizontal_speed_limit(10)
         self.horizontal_out_of_bounds()
         self.draw()

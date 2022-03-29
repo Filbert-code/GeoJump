@@ -13,6 +13,9 @@ from Player import Player
 # Make Sure This Is Always the last import
 from kivy import Config
 Config.set('graphics', 'multisamples', '0')
+Window.top = 100
+Window.left = 1000
+Window.size = (600, 1200)
 
 
 class GameView(Widget):
@@ -29,6 +32,9 @@ class GameView(Widget):
         self.bounce_value = 0
         self.player.velocity[1] = 0
         self.player.gravity = 0
+        self.player_boost_active = False
+        self.player_boost_slowdown = False
+        self.platform_boost_vel = 0
 
         # user keyboard input setup
         self.keyboard = Window.request_keyboard(self._keyboard_closed, self, 'text')
@@ -36,7 +42,7 @@ class GameView(Widget):
         self.keyboard.bind(on_key_up=self._on_keyboard_up)
 
         # platform setup
-        p1 = Platform(pos=(0, 0), size=(1500, 10))
+        p1 = Platform(isBooster=False, pos=(0, -20), size=(1500, 10))
         self.add_widget(p1)
         self.platform_group = [p1]
         self.create_platforms(20, 50)
@@ -49,10 +55,17 @@ class GameView(Widget):
         # don't update if game hasn't started
         if not self.game_has_started:
             return
+
+        # TODO: REFACTOR THIS!!!
+        if self.player_boost_active:
+            self.update_player_boost_velocity()
         # collision detections
         for platform in self.platform_group:
             self.platform_player_collision(platform)
-            self.move_platform(platform)
+            if self.player_boost_active:
+                self.boost_platform(platform)
+            else:
+                self.move_platform(platform)
             self.discard_unseen_platforms(platform)
         # check if the player died
         if self.player.pos[1] < -self.player.height:
@@ -68,13 +81,19 @@ class GameView(Widget):
     def create_platforms(self, numOfPlatforms, separation):
         # percentage chance of spawning a moving platform
         moving_plat_chance = 0.25
+        booster_plat_chance = 0.25
         for i in range(numOfPlatforms):
+            isBooster = random() < booster_plat_chance
             if random() <= moving_plat_chance:
                 # using the position of the last platform added to create the new platform
-                p = MovingPlatform(pos=(random()*800, self.platform_group[-1].pos[1] + separation), size=(150, 10))
+                p = MovingPlatform(isBooster=isBooster,
+                                   pos=(random()*800, self.platform_group[-1].pos[1] + separation),
+                                   size=(150, 10))
             else:
                 # static platforms
-                p = Platform(pos=(random()*800, self.platform_group[-1].pos[1] + separation), size=(150, 10))
+                p = Platform(isBooster=isBooster,
+                             pos=(random()*800, self.platform_group[-1].pos[1] + separation),
+                             size=(150, 10))
             Clock.schedule_interval(p.update, 1 / 60.)
             self.add_widget(p)
             self.platform_group.append(p)
@@ -83,12 +102,36 @@ class GameView(Widget):
         # check player collision with platforms
         if self.player.collide_widget(platform):
             if self.player.velocity[1] < -2.5 and self.player.pos[1] > platform.pos[1] - platform.height / 2:
+                if platform.isBooster:
+                    self.player_boost_active = True
+                    Clock.schedule_once(self.reset_player_booster, 1)
+                    self.bounce_value = 40
+                    self.player.gravity /= 2.0
                 self.player.velocity[1] = self.bounce_value
+
+    def reset_player_booster(self, dt):
+        self.player_boost_active = False
+        self.player_boost_slowdown = False
+        self.bounce_value = 15
+        self.player.gravity *= 2.0
+
+    def update_player_boost_velocity(self):
+        if self.player_boost_slowdown:
+            self.platform_boost_vel += 0.6
+        else:
+            self.platform_boost_vel -= 0.6
+
+    def boost_platform(self, platform):
+        platform.velocity[1] = self.platform_boost_vel
+        if platform.velocity[1] < -20:
+            self.player_boost_slowdown = True
 
     def move_platform(self, platform):
         # update height of platforms
-        if self.player.pos[1] > 280:
-            platform.velocity[1] = -self.background_movement_speed
+        if self.player.pos[1] > 280 and not self.player_boost_active:
+            platform.velocity[1] -= 2
+            if platform.velocity[1] < self.background_movement_speed:
+                platform.velocity[1] = -self.background_movement_speed
             self.score += 1
         else:
             platform.velocity[1] = 0
@@ -141,7 +184,7 @@ class GameView(Widget):
         self.player.gravity = 0
 
         # platform setup
-        p1 = Platform(pos=(0, 0), size=(1500, 10))
+        p1 = Platform(isBooster=False, pos=(0, -20), size=(1500, 10))
         self.add_widget(p1)
         self.platform_group = [p1]
         self.create_platforms(20, 50)
