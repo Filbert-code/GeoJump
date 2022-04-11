@@ -1,6 +1,6 @@
 from kivy.clock import Clock
 from kivy.core.window import Window
-from kivy.graphics import Color, Rectangle
+from kivy.graphics import Color, Rectangle, Scale
 from kivy.properties import ListProperty
 from kivy.uix.widget import Widget
 
@@ -17,10 +17,11 @@ class Player(Widget):
         self.isMovingRight = False
         Clock.schedule_interval(self.update, 1/60.)
         self.paused = False
-        self.bounce_value = 20
+        self.bounce_value = 16
         self.boost_active = False
         self.boost_slowdown = False
         self.platform_boost_velocity = 0
+        self.platform_velocity = 0
 
     def update(self, *args):
         if self.paused:
@@ -31,12 +32,16 @@ class Player(Widget):
 
         if self.boost_active:
             self.update_boost_velocity()
+            # print(self.platform_boost_velocity)
+
+        if self.pos[1] > Window.height/2:
+            self.pos[1] = Window.height/2
 
         # player has a constant decreasing vertical velocity (negative acceleration)
         self.velocity[1] -= self.gravity
         self.horizontal_acceleration(1.5)
         self.horizontal_deceleration(1)
-        self.vertical_speed_limit(40, 12)
+        # self.vertical_speed_limit(40, 12)
         self.horizontal_speed_limit(10)
         self.horizontal_out_of_bounds()
         self.draw()
@@ -44,8 +49,8 @@ class Player(Widget):
     def draw(self):
         self.canvas.clear()
         with self.canvas:
-            Color(0, 0, 1.)
-            Rectangle(pos=self.pos, size=self.size)
+            # Color(0, 0, 1.)
+            Rectangle(pos=self.pos, size=self.size, source='boxplayer2.png', background_normal=Color(1, 1, 1))
 
     def horizontal_acceleration(self, acc):
         if self.isMovingLeft:
@@ -56,9 +61,12 @@ class Player(Widget):
     def horizontal_deceleration(self, acc):
         # player has a constant horizontal deceleration, will come to a stop if
         # no inputs are made
+        if abs(self.velocity[0]) < acc:
+            self.velocity[0] = 0
+            return
         if self.velocity[0] > 0:
             self.velocity[0] -= acc
-        if self.velocity[0] < 0:
+        else:
             self.velocity[0] += acc
 
     def vertical_speed_limit(self, speed_limit_down, speed_limit_up):
@@ -84,11 +92,16 @@ class Player(Widget):
 
     def give_player_movement(self):
         self.velocity[1] = -7.5
-        self.gravity = 0.5
+        self.gravity = 0.6
 
     def update_boost_velocity(self):
         if self.boost_slowdown:
-            self.platform_boost_velocity += 0.6
+            if self.platform_boost_velocity < -5:
+                self.platform_boost_velocity += 1
+            else:
+                self.boost_active = False
+                self.boost_slowdown = False
+                self.bounce_value = 20
+                self.gravity *= 2
         else:
-            self.platform_boost_velocity -= 0.6
-
+            self.platform_boost_velocity -= 1

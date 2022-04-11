@@ -3,7 +3,7 @@ from random import random
 from kivy.app import App
 from kivy.clock import Clock
 from kivy.core.window import Window
-from kivy.graphics import Color
+from kivy.lang import Builder
 from kivy.uix.screenmanager import ScreenManager, Screen, FadeTransition, NoTransition, CardTransition
 from kivy.uix.widget import Widget
 from kivy.properties import StringProperty, NumericProperty, ReferenceListProperty
@@ -14,9 +14,10 @@ from Player import Player
 # Make Sure This Is Always the last import
 from kivy import Config
 Config.set('graphics', 'multisamples', '0')
-Window.top = 100
+Window.top = 120
 Window.left = 1000
-Window.size = (600, 1200)
+Window.size = (600, 1080)
+Builder.load_file("GeoJump.kv")
 
 
 class GameView(Widget):
@@ -55,17 +56,23 @@ class GameView(Widget):
             Clock.unschedule(self.player.update)
 
         # player setup
-        self.player = Player(pos=(0, 200), size=(60, 60))
+        self.player = Player(pos=(0, 200), size=(100, 100))
         self.add_widget(self.player)
         self.player.velocity[1] = 0
         self.player.gravity = 0
 
         # platform setup
-        p1 = Platform(self.player, isBooster=False, pos=(0, 0), size=(1500, 10))
+        p1 = Platform(self.player, isBooster=False, pos=(0, 0), size=(1500, 25))
         self.add_widget(p1)
-        Clock.schedule_interval(p1.update, 1 / 60.)
-        self.platform_group = [p1]
-        self.create_platforms(20, 50)
+        p1.update()
+        p = Platform(self.player, isBooster=False, pos=(100, 100), size=(175, 15))
+        self.add_widget(p)
+        self.platform_group = [p1, p]
+        for i in range(10):
+            p = Platform(self.player, isBooster=False, pos=(0, (75 * (i + 1)) + 200), size=(175, 15))
+            self.add_widget(p)
+            self.platform_group.append(p)
+        # self.create_platforms(20, 70)
 
     def update(self, *args):
         # don't update if game hasn't started
@@ -77,19 +84,31 @@ class GameView(Widget):
         # clean up off-screen platforms
         for platform in self.platform_group:
             self.discard_unseen_platforms(platform)
+            platform.update()
         # check if the player died
         if self.player.pos[1] < -self.player.height:
             self.game_over()
 
     def on_touch_down(self, touch):
+        touch.grab(self)
         # clicking right side of the screen
         if touch.pos[0] > Window.width / 2:
-            self.player.velocity[0] = 7.5
+            self.player.isMovingRight = True
         else:
-            self.player.velocity[0] = -7.5
+            self.player.isMovingLeft = True
 
-    def create_platforms(self, numOfPlatforms, separation):
+    def on_touch_up(self, touch):
+        if touch.grab_current is self:
+            # I receive my grabbed touch, I must ungrab it!
+            touch.ungrab(self)
+            if touch.pos[0] > Window.width / 2:
+                self.player.isMovingRight = False
+            else:
+                self.player.isMovingLeft = False
+
+    def create_platforms(self, numOfPlatforms, separation=150):
         # percentage chance of spawning a moving platform
+        separation += random()*100
         moving_plat_chance = 0.25
         booster_plat_chance = 0.1
         for i in range(numOfPlatforms):
@@ -98,30 +117,28 @@ class GameView(Widget):
                 # using the position of the last platform added to create the new platform
                 p = MovingPlatform(player=self.player,
                                    isBooster=isBooster,
-                                   pos=(random()*800, self.platform_group[-1].pos[1] + separation),
-                                   size=(150, 10))
+                                   pos=(random()*(Window.width - 175), self.platform_group[-1].pos[1] + separation),
+                                   size=(175, 25))
             else:
                 # static platforms
                 p = Platform(player=self.player,
                              isBooster=isBooster,
-                             pos=(random()*800, self.platform_group[-1].pos[1] + separation),
-                             size=(150, 10))
-            Clock.schedule_interval(p.update, 1 / 60.)
+                             pos=(random()*(Window.width - 175), self.platform_group[-1].pos[1] + separation),
+                             size=(175, 25))
+            p.update()
             self.add_widget(p)
             self.platform_group.append(p)
 
     def discard_unseen_platforms(self, platform):
         # delete platform objects that fall below the screen
-        platform_offscreen_distance = 50
-        if platform.pos[1] < -self.player.height:
+        if platform.pos[1] < -15:
             self.remove_widget(platform)
             self.platform_group.pop(0)
-            self.create_platforms(1, platform_offscreen_distance)
+            self.create_platforms(1)
 
     def start_game(self):
         self.player.give_player_movement()
         self.player.paused = False
-        self.player.bounce_value = 20
         self.game_has_started = True
         for p in self.platform_group:
             p.paused = False
@@ -145,16 +162,16 @@ class GameView(Widget):
     def _on_keyboard_down(self, keyboard, keycode, text, modifiers):
         if not self.game_has_started:
             return
-        if keycode[1] == 'left':
+        if keycode[1] == 'a':
             self.player.isMovingLeft = True
-        elif keycode[1] == 'right':
+        elif keycode[1] == 'd':
             self.player.isMovingRight = True
         return True
 
     def _on_keyboard_up(self, keyboard, keycode):
-        if keycode[1] == 'left':
+        if keycode[1] == 'a':
             self.player.isMovingLeft = False
-        elif keycode[1] == 'right':
+        elif keycode[1] == 'd':
             self.player.isMovingRight = False
 
 

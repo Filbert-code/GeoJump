@@ -1,3 +1,4 @@
+from kivy.animation import Animation
 from kivy.clock import Clock
 from kivy.graphics import Color, Rectangle
 from kivy.properties import ListProperty
@@ -14,7 +15,7 @@ class Platform(Widget):
         self.player = player
         self.isBooster = isBooster
         self.paused = False
-        self.background_movement_speed = 5
+        self.background_movement_speed = 20
 
     def update(self, *args):
         if self.paused:
@@ -25,7 +26,6 @@ class Platform(Widget):
             self.boost_platform()
         else:
             self.move_platform()
-
         self.x += self.velocity[0]
         self.y += self.velocity[1]
         self.draw()
@@ -37,36 +37,42 @@ class Platform(Widget):
                 Color(1., 1., 1.)
             else:
                 Color(0., 1., 0.)
-            Rectangle(pos=self.pos, size=self.size)
+            Rectangle(pos=self.pos, size=(175, 15))
 
     def platform_player_collision(self):
         # check player collision with platforms
         if self.player.collide_widget(self):
-            if self.player.velocity[1] < -2.5 and self.player.pos[1] > self.pos[1] - self.height / 2:
+            if self.player.velocity[1] < -5 and self.player.pos[1] > self.pos[1] - self.height / 2 \
+                    and (2 > self.velocity[1] > -2):
                 if self.isBooster:
                     self.player.boost_active = True
-                    Clock.schedule_once(self.reset_player_booster, 1)
-                    self.player.bounce_value = 40
-                    self.player.gravity /= 2.0
+                    self.player.bounce_value = 25
+                    self.player.gravity /= 1.5
                 self.player.velocity[1] = self.player.bounce_value
-
-    def reset_player_booster(self, dt):
-        self.player.boost_active = False
-        self.player.boost_slowdown = False
-        self.player.bounce_value = 20
-        self.player.gravity *= 2.0
 
     def boost_platform(self):
         self.velocity[1] = self.player.platform_boost_velocity
-        if self.velocity[1] < -20:
+        if self.velocity[1] < -40:
             self.player.boost_slowdown = True
 
     def move_platform(self):
         # update height of platforms
-        if self.player.pos[1] > 200 and not self.player.boost_active:
-            self.velocity[1] -= 2
-            if self.velocity[1] < self.background_movement_speed:
-                self.velocity[1] = -self.background_movement_speed
-        else:
-            self.velocity[1] = 0
+        if self.player.pos[1] >= 300 and not self.player.boost_active:
+            # self.velocity[1] -= 2
+            if self.player.velocity[1] > 0:
+                if self.player.platform_velocity > -self.player.velocity[1]:
+                    self.player.platform_velocity -= 0.4
 
+            else:  # player is vertically decelerating
+                if self.player.platform_velocity < 0:
+                    self.player.platform_velocity += 0.1
+            self.velocity[1] = self.player.platform_velocity
+
+            # if self.velocity[1] < self.background_movement_speed:
+            #     self.velocity[1] = -self.background_movement_speed
+        else:
+            # deceleration of platform when the player is not at the threshold until platform is stopped
+            if self.velocity[1] < 0:
+                self.velocity[1] += 1
+            else:
+                self.velocity[1] = 0

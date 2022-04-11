@@ -8,7 +8,7 @@ class MovingPlatform(Platform):
     def __init__(self, **kwargs):
         super(MovingPlatform, self).__init__(**kwargs)
         # at least the distance will be 300, can be up to 700 pixels
-        self.moving_distance = random() * 400 + 300
+        self.moving_distance = random() * 200 + 200
         # at least speed of 1, can be up to 4
         self.velocity[0] = random() * 3 + 1
         self.starting_pos_x = self.pos[0]
